@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "BTH Exams to Calendar",
   "short_name": "BTH Exams",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Pick exams from tentamen.bth.se and add them to Google Calendar, iCloud/iPhone Calendar or an .ics file. Reads the page only after you have signed in yourself.",
   "action": {
     "default_popup": "popup/popup.html",
@@ -23,7 +23,8 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "storage"
+    "storage",
+    "declarativeNetRequestWithHostAccess"
   ],
   "host_permissions": [
     "https://tentamen.bth.se/*",

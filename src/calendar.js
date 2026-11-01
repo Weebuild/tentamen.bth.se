@@ -144,17 +144,23 @@
   }
 
   function buildIcs(exams, opts) {
+    return icsFromEvents(eventsFor(exams, opts), opts);
+  }
+
+  /**
+   * One VCALENDAR holding the given event descriptors. With opts.caldav the
+   * file is written as a CalDAV resource (no METHOD / calendar name).
+   */
+  function icsFromEvents(events, opts) {
     opts = opts || {};
-    var events = eventsFor(exams, opts);
     var lines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
       'PRODID:-//tentamen.bth.se calendar extension//EN',
-      'CALSCALE:GREGORIAN',
-      'METHOD:PUBLISH',
-      'X-WR-CALNAME:BTH exams',
-      'X-WR-TIMEZONE:' + TZ
-    ].concat(VTIMEZONE);
+      'CALSCALE:GREGORIAN'
+    ];
+    if (!opts.caldav) lines.push('METHOD:PUBLISH', 'X-WR-CALNAME:BTH exams', 'X-WR-TIMEZONE:' + TZ);
+    lines = lines.concat(VTIMEZONE);
 
     var dtstamp = stamp(opts.now);
     events.forEach(function (ev) {
@@ -211,6 +217,7 @@
 
   var api = {
     buildIcs: buildIcs,
+    icsFromEvents: icsFromEvents,
     googleLinks: googleLinks,
     eventsFor: eventsFor,
     _fold: fold,

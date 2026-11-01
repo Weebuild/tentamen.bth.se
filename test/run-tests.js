@@ -136,8 +136,25 @@ async function parse(page, fixture) {
           create: (o) => window.__opened.push(o.url)
         },
         scripting: { executeScript: async (o) => (o.func ? [{ result }] : [{}]) },
-        storage: { local: { get: async () => ({}), set: async () => {} } }
+        storage: { local: {
+          data: {},
+          get: async (k) => ({ [k]: window.chrome.storage.local.data[k] }),
+          set: async (o) => Object.assign(window.chrome.storage.local.data, o),
+          remove: async (k) => delete window.chrome.storage.local.data[k]
+        } },
+        runtime: {
+          lastError: null,
+          sendMessage: (msg, cb) => {
+            window.__messages.push(msg);
+            if (msg.type === 'icloud-list-calendars') {
+              setTimeout(() => cb({ ok: true, result: [{ url: 'https://x/home/', name: 'Home' }, { url: 'https://x/school/', name: 'School' }] }));
+            } else {
+              setTimeout(() => cb({ ok: true, result: { added: msg.exams.length, calendarName: 'School' } }));
+            }
+          }
+        }
       };
+      window.__messages = [];
     }, a);
     await p.goto(fileUrl('popup/popup.html'));
     await p.waitForSelector('.exam');
@@ -150,8 +167,28 @@ async function parse(page, fixture) {
     await p.click('#ics');
     const file = await dl;
     assert.strictEqual(file.suggestedFilename(), 'bth-exams.ics');
+
+    // iCloud: not connected -> shows setup form; connect; pick calendar; add
     await p.click('#selectRegistered');
-    await p.screenshot({ path: path.join(require('os').tmpdir(), 'bth-popup-screenshot.png'), fullPage: true });
+    assert.strictEqual(await p.isVisible('#icloudForm'), false);
+    await p.click('#icloud');
+    assert.strictEqual(await p.isVisible('#icloudForm'), true);
+    assert.match(await p.textContent('#status'), /Connect your iCloud account/);
+    await p.fill('#icloudUser', 'student@icloud.com');
+    await p.fill('#icloudPass', 'abcd-efgh-ijkl-mnop');
+    await p.click('#icloudConnect');
+    await p.waitForSelector('#icloudCal option', { state: 'attached' });
+    assert.match(await p.textContent('#icloudState'), /student@icloud.com › Home/);
+    await p.selectOption('#icloudCal', 'https://x/school/');
+    await p.waitForFunction(() => /School/.test(document.querySelector('#icloudState').textContent));
+    await p.click('#icloud');
+    await p.waitForFunction(() => /Added 1 event/.test(document.querySelector('#status').textContent));
+    const msgs = await p.evaluate(() => window.__messages);
+    assert.deepStrictEqual(msgs.map((m) => m.type), ['icloud-list-calendars', 'icloud-add']);
+    assert.strictEqual(msgs[1].exams.length, 1);
+    assert.strictEqual(msgs[1].options.reminderMinutes, 1440);
+    await p.click('#icloudToggle');
+    await p.screenshot({ path: path.join(root, 'docs', 'popup.png'), fullPage: true });
     await p.close();
   });
 

@@ -22,6 +22,7 @@ const exams = [
 
 // Loads background.js the way Chrome would, with chrome.* stubbed and
 // requests to caldav.icloud.com sent to the fake server instead.
+const rules = [];
 function loadBackground(srv, storage) {
   let listener;
   const realFetch = globalThis.fetch;
@@ -30,6 +31,8 @@ function loadBackground(srv, storage) {
     fetch: (url, init) => realFetch(String(url).replace('https://caldav.icloud.com/', srv.url), init),
     chrome: {
       runtime: { id: 'ext', onMessage: { addListener: (fn) => (listener = fn) } },
+      tabs: { TAB_ID_NONE: -1 },
+      declarativeNetRequest: { updateSessionRules: async (o) => { rules.push(o); } },
       storage: { local: { get: async (k) => ({ [k]: storage[k] }) } }
     },
     importScripts: (...files) => files.forEach((f) =>
@@ -103,6 +106,13 @@ function loadBackground(srv, storage) {
     const again = await send({ type: 'icloud-add', exams, options: {} });
     assert.ok(again.ok);
     assert.strictEqual(srv.store.size, 3);
+  });
+
+  await test('background: strips Origin on its own iCloud requests only', () => {
+    const r = JSON.parse(JSON.stringify(rules[0].addRules[0])); // vm objects come from another realm
+    assert.deepStrictEqual(r.action.requestHeaders, [{ header: 'origin', operation: 'remove' }]);
+    assert.deepStrictEqual(r.condition.requestDomains, ['icloud.com']);
+    assert.deepStrictEqual(r.condition.tabIds, [-1]);
   });
 
   await test('background: not connected', async () => {

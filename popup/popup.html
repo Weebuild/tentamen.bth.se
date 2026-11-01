@@ -32,19 +32,45 @@
           <option value="1440" selected>1 day before</option>
           <option value="10080">1 week before</option>
         </select>
-        <small>(.ics only)</small>
+        <small>(.ics and iCloud)</small>
       </label>
     </fieldset>
 
     <div class="actions">
       <button type="button" id="google" class="primary">Add to Google Calendar</button>
-      <button type="button" id="ics" class="primary">Download .ics (iPhone / Apple)</button>
+      <button type="button" id="icloud" class="primary">Add to iCloud Calendar</button>
+      <button type="button" id="ics" class="secondary">Download .ics file</button>
     </div>
+    <div class="icloud-line">
+      <span id="icloudState">iCloud: not connected</span>
+      <button type="button" id="icloudToggle" class="link">Set up</button>
+    </div>
+
+    <form id="icloudForm" class="icloud" hidden autocomplete="off">
+      <p>
+        iCloud needs an <b>app-specific password</b> (your normal Apple ID password won't work).
+        Make one at <a href="https://account.apple.com/account/manage" target="_blank" rel="noopener">account.apple.com</a>
+        › Sign-In and Security › App-Specific Passwords. It is saved only in this browser and is only
+        sent to Apple's iCloud servers.
+      </p>
+      <label>Apple ID (e-mail)
+        <input type="email" id="icloudUser" required autocomplete="username">
+      </label>
+      <label>App-specific password
+        <input type="password" id="icloudPass" required placeholder="xxxx-xxxx-xxxx-xxxx" autocomplete="off">
+      </label>
+      <div class="row">
+        <button type="submit" id="icloudConnect" class="secondary">Connect</button>
+        <button type="button" id="icloudForget" class="link" hidden>Disconnect</button>
+      </div>
+      <label id="icloudCalLabel" hidden>Add exams to calendar
+        <select id="icloudCal"></select>
+      </label>
+    </form>
     <p class="hint">
-      Google opens one tab per event so you can press Save in each. For many exams, download the
-      .ics and import it in Google Calendar (Settings › Import) instead. To get the .ics onto an iPhone,
-      AirDrop or e-mail it to yourself and open it; if your Google account is already on the iPhone,
-      the Google events show up there by themselves.
+      Google opens one tab per event so you can press Save in each. iCloud adds the exams straight
+      into the calendar you pick, and they sync to your iPhone. Adding the same exam again updates it
+      instead of making a copy. The .ics file works with any calendar app (and Google's Import).
     </p>
   </section>
 

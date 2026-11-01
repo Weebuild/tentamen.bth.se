@@ -101,6 +101,7 @@
     var n = state.selected.size;
     $('count').textContent = n + ' of ' + state.exams.length + ' selected';
     $('google').disabled = n === 0;
+    $('icloud').disabled = n === 0;
     $('ics').disabled = n === 0;
   }
 
@@ -147,7 +148,128 @@
     setStatus('Saved bth-exams.ics. Open it to add the exams to your calendar.', 'ok');
   }
 
+  // ---------------------------------------------------------------- iCloud
+
+  function send(msg) {
+    return new Promise(function (resolve, reject) {
+      chrome.runtime.sendMessage(msg, function (res) {
+        if (chrome.runtime.lastError) return reject(new Error(chrome.runtime.lastError.message));
+        if (!res || !res.ok) return reject(new Error(res && res.error || 'Unknown error'));
+        resolve(res.result);
+      });
+    });
+  }
+
+  async function getIcloud() {
+    var data = await chrome.storage.local.get('icloud');
+    return data.icloud || null;
+  }
+
+  function showIcloudForm(show) {
+    $('icloudForm').hidden = !show;
+    $('icloudToggle').textContent = show ? 'Hide' : 'Settings';
+  }
+
+  function fillCalendars(calendars, selectedUrl) {
+    var sel = $('icloudCal');
+    sel.textContent = '';
+    calendars.forEach(function (c) {
+      var o = el('option', { value: c.url, text: c.name });
+      if (c.url === selectedUrl) o.selected = true;
+      sel.appendChild(o);
+    });
+    $('icloudCalLabel').hidden = !calendars.length;
+  }
+
+  async function renderIcloudState() {
+    var ic = await getIcloud();
+    var connected = !!(ic && ic.username && ic.password && ic.calendarUrl);
+    $('icloudState').textContent = connected
+      ? 'iCloud: ' + ic.username + ' › ' + (ic.calendarName || 'Calendar')
+      : 'iCloud: not connected';
+    $('icloudToggle').textContent = $('icloudForm').hidden ? (connected ? 'Settings' : 'Set up') : 'Hide';
+    $('icloudForget').hidden = !ic;
+    if (ic) {
+      $('icloudUser').value = ic.username || '';
+      $('icloudPass').value = ic.password ? '••••••••' : '';
+      if (ic.calendars) fillCalendars(ic.calendars, ic.calendarUrl);
+    }
+    return connected;
+  }
+
+  async function connectIcloud(ev) {
+    ev.preventDefault();
+    var ic = (await getIcloud()) || {};
+    var username = $('icloudUser').value.trim();
+    var pass = $('icloudPass').value;
+    var password = pass === '••••••••' && ic.password ? ic.password : pass;
+    $('icloudConnect').disabled = true;
+    setStatus('Connecting to iCloud…');
+    try {
+      var calendars = await send({ type: 'icloud-list-calendars', username: username, password: password });
+      if (!calendars.length) throw new Error('No calendars found in this iCloud account that can hold events.');
+      var keep = calendars.filter(function (c) { return c.url === ic.calendarUrl; })[0] || calendars[0];
+      await chrome.storage.local.set({ icloud: {
+        username: username, password: password, calendars: calendars,
+        calendarUrl: keep.url, calendarName: keep.name
+      } });
+      setStatus('Connected. Exams will go to "' + keep.name + '". You can pick another calendar below.', 'ok');
+      await renderIcloudState();
+    } catch (err) {
+      setStatus(err.message, 'warn');
+    } finally {
+      $('icloudConnect').disabled = false;
+    }
+  }
+
+  async function pickCalendar() {
+    var ic = await getIcloud();
+    if (!ic) return;
+    var c = (ic.calendars || []).filter(function (x) { return x.url === $('icloudCal').value; })[0];
+    if (!c) return;
+    ic.calendarUrl = c.url;
+    ic.calendarName = c.name;
+    await chrome.storage.local.set({ icloud: ic });
+    await renderIcloudState();
+  }
+
+  async function forgetIcloud() {
+    await chrome.storage.local.remove('icloud');
+    $('icloudUser').value = '';
+    $('icloudPass').value = '';
+    $('icloudCal').textContent = '';
+    $('icloudCalLabel').hidden = true;
+    setStatus('Disconnected from iCloud. The password was removed from this browser.', 'ok');
+    await renderIcloudState();
+  }
+
+  async function addToIcloud() {
+    if (!(await renderIcloudState())) {
+      showIcloudForm(true);
+      setStatus('Connect your iCloud account first (below).', 'warn');
+      return;
+    }
+    var exams = selectedExams();
+    $('icloud').disabled = true;
+    setStatus('Adding ' + exams.length + ' exam(s) to iCloud…');
+    try {
+      var r = await send({ type: 'icloud-add', exams: exams, options: options() });
+      setStatus('Added ' + r.added + ' event(s) to "' + r.calendarName + '" in iCloud. They will show up on your iPhone shortly.', 'ok');
+    } catch (err) {
+      setStatus(err.message, 'warn');
+    } finally {
+      $('icloud').disabled = state.selected.size === 0;
+    }
+  }
+
   async function init() {
+    $('icloud').addEventListener('click', addToIcloud);
+    $('icloudToggle').addEventListener('click', function () { showIcloudForm($('icloudForm').hidden); });
+    $('icloudForm').addEventListener('submit', connectIcloud);
+    $('icloudForget').addEventListener('click', forgetIcloud);
+    $('icloudCal').addEventListener('change', pickCalendar);
+    await renderIcloudState();
+
     $('selectAll').addEventListener('click', function () { select(function () { return true; }); });
     $('selectNone').addEventListener('click', function () { select(function () { return false; }); });
     $('selectRegistered').addEventListener('click', function () { select(function (e) { return e.status === 'registered'; }); });

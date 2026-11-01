@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>BTH Exams to Calendar</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="../icons/icon32.png" alt="" width="24" height="24">
+    <h1>BTH Exams to Calendar</h1>
+  </header>
+
+  <div id="status" class="status" role="status">Reading the page…</div>
+
+  <section id="main" hidden>
+    <div class="toolbar">
+      <button type="button" id="selectAll" class="link">Select all</button>
+      <button type="button" id="selectRegistered" class="link">Only registered</button>
+      <button type="button" id="selectNone" class="link">None</button>
+      <span id="count" class="count"></span>
+    </div>
+
+    <div id="list" class="list"></div>
+
+    <fieldset class="options">
+      <label><input type="checkbox" id="optSignup"> Also add the day sign-up opens (for exams I'm not registered for)</label>
+      <label>Reminder:
+        <select id="optReminder">
+          <option value="0">None</option>
+          <option value="60">1 hour before</option>
+          <option value="1440" selected>1 day before</option>
+          <option value="10080">1 week before</option>
+        </select>
+        <small>(.ics only)</small>
+      </label>
+    </fieldset>
+
+    <div class="actions">
+      <button type="button" id="google" class="primary">Add to Google Calendar</button>
+      <button type="button" id="ics" class="primary">Download .ics (iPhone / Apple)</button>
+    </div>
+    <p class="hint">
+      Google opens one tab per event so you can press Save in each. For many exams, download the
+      .ics and import it in Google Calendar (Settings › Import) instead. To get the .ics onto an iPhone,
+      AirDrop or e-mail it to yourself and open it; if your Google account is already on the iPhone,
+      the Google events show up there by themselves.
+    </p>
+  </section>
+
+  <script src="../src/parser.js"></script>
+  <script src="../src/calendar.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

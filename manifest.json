@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "BTH Exams to Calendar",
+  "short_name": "BTH Exams",
+  "version": "0.1.0",
+  "description": "Pick exams from tentamen.bth.se and add them to Google Calendar or Apple/iOS Calendar (.ics). Reads the page only after you have signed in yourself.",
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "BTH Exams to Calendar",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["https://tentamen.bth.se/*"]
+}

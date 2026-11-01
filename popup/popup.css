@@ -1,0 +1,125 @@
+:root {
+  --bth: #0d596f;
+  --bth-dark: #0a4557;
+  --bg: #ffffff;
+  --muted: #5b6770;
+  --line: #e2e6e9;
+  --warn-bg: #fbecd9;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  width: 420px;
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: #1d2327;
+  background: var(--bg);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: var(--bth);
+  color: #fff;
+}
+
+header h1 { font-size: 15px; margin: 0; font-weight: 600; }
+
+.status { padding: 10px 14px; color: var(--muted); }
+.status.warn { background: var(--warn-bg); color: #5a3b00; }
+.status.ok { color: var(--bth-dark); }
+.status:empty { display: none; }
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.count { margin-left: auto; color: var(--muted); }
+
+button.link {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--bth);
+  cursor: pointer;
+  text-decoration: underline;
+  font: inherit;
+}
+
+.list { max-height: 330px; overflow-y: auto; }
+
+.group-title {
+  position: sticky;
+  top: 0;
+  margin: 0;
+  padding: 6px 14px;
+  background: #f4f6f7;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+}
+
+.exam {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 2px 10px;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+}
+
+.exam:hover { background: #f9fbfb; }
+.exam input { grid-row: span 2; margin-top: 3px; }
+.exam .name { font-weight: 600; }
+.exam .when { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.exam .meta { grid-column: 2 / 4; color: var(--muted); font-size: 12px; }
+
+.badge {
+  display: inline-block;
+  padding: 0 6px;
+  margin-left: 4px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
+  background: #e5eef1;
+  color: var(--bth-dark);
+}
+.badge.registered { background: #dcf1e2; color: #1e6b34; }
+.badge.signup { background: var(--warn-bg); color: #6b4300; }
+
+.options {
+  margin: 0;
+  padding: 8px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 6px;
+}
+.options small { color: var(--muted); }
+
+.actions { display: flex; gap: 8px; padding: 10px 14px 4px; }
+
+button.primary {
+  flex: 1;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--bth);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+button.primary:hover { background: var(--bth-dark); }
+button.primary:disabled { background: #a9b6bb; cursor: default; }
+
+.hint { margin: 4px 14px 12px; color: var(--muted); font-size: 11.5px; }
